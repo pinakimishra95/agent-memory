@@ -123,16 +123,22 @@ class MemoryStore:
                         evicted last from episodic storage.
             store_semantic: Also embed and store in the vector DB for semantic search.
         """
-        # Dedup check before storing
+        # Dedup check before storing — skip gracefully if semantic backend not installed
         if self._deduplicator and store_semantic:
-            existing_results = self.semantic.search(content, n=5, min_similarity=0.5)
-            existing_texts = [r["content"] for r in existing_results]
-            if self._deduplicator.is_duplicate(content, existing_texts):
-                return  # Skip duplicate
+            try:
+                existing_results = self.semantic.search(content, n=5, min_similarity=0.5)
+                existing_texts = [r["content"] for r in existing_results]
+                if self._deduplicator.is_duplicate(content, existing_texts):
+                    return  # Skip duplicate
+            except (ImportError, Exception):
+                pass  # Semantic backend unavailable — store without dedup check
 
         self.episodic.store(content, importance=importance)
         if store_semantic:
-            self.semantic.store(content)
+            try:
+                self.semantic.store(content)
+            except (ImportError, Exception):
+                pass  # Semantic backend unavailable — episodic store succeeded
 
     def recall(self, query: str, n: int = 5, include_episodic: bool = True) -> list[dict]:
         """
@@ -143,8 +149,11 @@ class MemoryStore:
         """
         results = []
 
-        # Semantic search (meaning-based)
-        semantic_results = self.semantic.search(query, n=n)
+        # Semantic search (meaning-based) — skipped gracefully if backend not installed
+        try:
+            semantic_results = self.semantic.search(query, n=n)
+        except (ImportError, Exception):
+            semantic_results = []
         for r in semantic_results:
             results.append({
                 "content": r["content"],
