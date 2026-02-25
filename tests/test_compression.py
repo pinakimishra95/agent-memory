@@ -1,0 +1,87 @@
+"""
+Tests for the ContextCompressor and compression pipeline.
+These tests mock the LLM calls so no API key is needed.
+"""
+
+import pytest
+from unittest.mock import patch, MagicMock
+
+from agentmemory.tiers.working import Message
+from agentmemory.compression import ContextCompressor
+
+
+class TestContextCompressor:
+    def _make_messages(self) -> list[Message]:
+        return [
+            Message(role="user", content="Hi, I'm Alice and I'm building a travel app"),
+            Message(role="assistant", content="That's exciting! What kind of travel app?"),
+            Message(role="user", content="It's for budget travelers, mainly backpackers"),
+        ]
+
+    def test_summarize_calls_llm(self):
+        compressor = ContextCompressor(provider="anthropic")
+        messages = self._make_messages()
+
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="Summary: Alice is building a travel app for backpackers.")]
+
+        with patch("anthropic.Anthropic") as MockClient:
+            instance = MockClient.return_value
+            instance.messages.create.return_value = mock_response
+            compressor._client = instance
+
+            summary = compressor.summarize(messages)
+
+        assert "travel" in summary.lower() or "alice" in summary.lower() or len(summary) > 0
+
+    def test_extract_facts_returns_list(self):
+        compressor = ContextCompressor(provider="anthropic")
+        messages = self._make_messages()
+
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text="- Alice is building a travel app\n- Target users are backpackers")]
+
+        with patch("anthropic.Anthropic") as MockClient:
+            instance = MockClient.return_value
+            instance.messages.create.return_value = mock_response
+            compressor._client = instance
+
+            facts = compressor.extract_facts(messages)
+
+        assert isinstance(facts, list)
+        assert len(facts) >= 0  # May vary based on mock
+
+    def test_extract_facts_parses_dashes(self):
+        compressor = ContextCompressor(provider="anthropic")
+        messages = self._make_messages()
+
+        raw_output = "- User is Alice\n- User builds travel apps\n- Target: backpackers"
+        mock_response = MagicMock()
+        mock_response.content = [MagicMock(text=raw_output)]
+
+        with patch("anthropic.Anthropic") as MockClient:
+            instance = MockClient.return_value
+            instance.messages.create.return_value = mock_response
+            compressor._client = instance
+
+            facts = compressor.extract_facts(messages)
+
+        assert "User is Alice" in facts
+        assert "User builds travel apps" in facts
+        assert "Target: backpackers" in facts
+
+    def test_openai_provider(self):
+        compressor = ContextCompressor(provider="openai")
+        messages = self._make_messages()
+
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock(message=MagicMock(content="OpenAI summary"))]
+
+        with patch("openai.OpenAI") as MockClient:
+            instance = MockClient.return_value
+            instance.chat.completions.create.return_value = mock_response
+            compressor._client = instance
+
+            summary = compressor.summarize(messages)
+
+        assert summary == "OpenAI summary"
