@@ -58,9 +58,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/agent-memory"
-Documentation = "https://github.com/yourusername/agent-memory#readme"
-Issues = "https://github.com/yourusername/agent-memory/issues"
+Homepage = "https://github.com/pinakimishra95/agent-memory"
+Documentation = "https://github.com/pinakimishra95/agent-memory#readme"
+Issues = "https://github.com/pinakimishra95/agent-memory/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentmemory"]

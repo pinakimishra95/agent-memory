@@ -80,6 +80,9 @@ class MemoryStore:
         if persist_dir is None:
             persist_dir = str(Path.home() / ".agentmemory")
 
+        # Ensure persist directory exists
+        Path(persist_dir).mkdir(parents=True, exist_ok=True)
+
         # Initialize tiers
         self.working = WorkingMemory(
             max_tokens=max_working_tokens,

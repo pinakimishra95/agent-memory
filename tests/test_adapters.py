@@ -5,7 +5,7 @@ Mock external SDKs so no API keys or frameworks are needed.
 
 import pytest
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 
 class TestLangChainAdapter:
@@ -75,6 +75,12 @@ class TestLangChainAdapter:
 
 
 class TestOpenAIAdapter:
+    """
+    openai is stubbed in sys.modules by conftest.py so these tests run
+    without the real openai package. The mock client is injected directly
+    via client._client to bypass the constructor's openai.OpenAI() call.
+    """
+
     def test_chat_injects_memory_context(self):
         import tempfile
         from agentmemory import MemoryStore
@@ -87,23 +93,17 @@ class TestOpenAIAdapter:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="Hello Bob!"))]
 
-        with patch("openai.OpenAI") as MockOpenAI:
-            instance = MockOpenAI.return_value
-            instance.chat.completions.create.return_value = mock_response
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_response
 
-            client = MemoryOpenAI(
-                agent_id="oai-test",
-                memory_store=store,
-            )
-            client._client = instance
+        # Pass memory_store to skip MemoryStore construction; inject _client directly
+        client = MemoryOpenAI(agent_id="oai-test", memory_store=store)
+        client._client = mock_client
 
-            response = client.chat("What's my name?")
+        response = client.chat("What's my name?")
 
-        # The create call should have received system context with "Bob"
-        call_args = instance.chat.completions.create.call_args
-        messages_sent = call_args.kwargs.get("messages") or call_args.args[0] if call_args.args else []
-        if call_args.kwargs.get("messages"):
-            messages_sent = call_args.kwargs["messages"]
+        call_args = mock_client.chat.completions.create.call_args
+        messages_sent = call_args.kwargs.get("messages", [])
         system_msg = next((m for m in messages_sent if m.get("role") == "system"), None)
         assert system_msg is not None
         assert "Bob" in system_msg["content"]
@@ -119,14 +119,13 @@ class TestOpenAIAdapter:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock(message=MagicMock(content="Response!"))]
 
-        with patch("openai.OpenAI") as MockOpenAI:
-            instance = MockOpenAI.return_value
-            instance.chat.completions.create.return_value = mock_response
+        mock_client = MagicMock()
+        mock_client.chat.completions.create.return_value = mock_response
 
-            client = MemoryOpenAI(agent_id="oai-history", memory_store=store)
-            client._client = instance
+        client = MemoryOpenAI(agent_id="oai-history", memory_store=store)
+        client._client = mock_client
 
-            client.chat("First message")
+        client.chat("First message")
 
         messages = store.get_messages()
         assert len(messages) == 2  # user + assistant
