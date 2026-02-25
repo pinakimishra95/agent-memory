@@ -17,7 +17,7 @@ Usage:
 from __future__ import annotations
 
 import os
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..store import MemoryStore
@@ -32,8 +32,8 @@ class MemoryOpenAI:
         self,
         agent_id: str,
         model: str = "gpt-4o-mini",
-        api_key: Optional[str] = None,
-        memory_store: Optional["MemoryStore"] = None,
+        api_key: str | None = None,
+        memory_store: MemoryStore | None = None,
         system_prompt: str = "You are a helpful assistant.",
         **memory_kwargs,
     ):

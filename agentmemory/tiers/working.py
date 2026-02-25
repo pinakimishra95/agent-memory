@@ -5,8 +5,7 @@ Tracks the running conversation and triggers compression when nearing token limi
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
 
 @dataclass

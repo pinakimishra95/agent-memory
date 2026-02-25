@@ -12,13 +12,12 @@ Handles automatic compression, deduplication, and context injection.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
 
-from .tiers.working import WorkingMemory
-from .tiers.episodic import EpisodicMemory
-from .tiers.semantic import SemanticMemory
 from .compression import ContextCompressor
 from .dedup import MemoryDeduplicator
+from .tiers.episodic import EpisodicMemory
+from .tiers.semantic import SemanticMemory
+from .tiers.working import WorkingMemory
 
 
 class MemoryStore:
@@ -39,7 +38,7 @@ class MemoryStore:
         self,
         agent_id: str,
         # Storage config
-        persist_dir: Optional[str] = None,
+        persist_dir: str | None = None,
         # Working memory config
         max_working_tokens: int = 4096,
         compression_threshold: float = 0.8,
@@ -48,8 +47,8 @@ class MemoryStore:
         embedding_provider: str = "sentence-transformers",
         # Compression config
         llm_provider: str = "anthropic",
-        llm_model: Optional[str] = None,
-        api_key: Optional[str] = None,
+        llm_model: str | None = None,
+        api_key: str | None = None,
         # Dedup config
         dedup_threshold: float = 0.92,
         enable_dedup: bool = True,
@@ -183,7 +182,7 @@ class MemoryStore:
 
     def get_context(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         max_tokens: int = 500,
         n: int = 5,
     ) -> str:
@@ -278,7 +277,7 @@ class MemoryStore:
     # Utilities
     # -------------------------------------------------------------------------
 
-    def clear(self, tiers: Optional[list[str]] = None):
+    def clear(self, tiers: list[str] | None = None):
         """
         Clear memory. Pass tiers=["working", "episodic", "semantic"] to clear specific tiers,
         or call with no args to clear all.

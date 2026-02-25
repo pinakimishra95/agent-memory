@@ -21,7 +21,7 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..store import MemoryStore
@@ -48,7 +48,7 @@ class CrewMemoryCallback:
         )
     """
 
-    def __init__(self, memory_store: "MemoryStore", importance: int = 7):
+    def __init__(self, memory_store: MemoryStore, importance: int = 7):
         self.memory_store = memory_store
         self.importance = importance
 
@@ -66,9 +66,9 @@ class CrewMemoryCallback:
 
 
 def get_memory_context_for_agent(
-    memory_store: "MemoryStore",
+    memory_store: MemoryStore,
     role: str,
-    goal: Optional[str] = None,
+    goal: str | None = None,
     max_tokens: int = 400,
 ) -> str:
     """

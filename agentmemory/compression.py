@@ -5,7 +5,7 @@ don't consume the entire context window, while preserving key facts.
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .tiers.working import Message
@@ -36,7 +36,7 @@ Conversation:
 {conversation}"""
 
 
-def _messages_to_text(messages: list["Message"]) -> str:
+def _messages_to_text(messages: list[Message]) -> str:
     lines = []
     for m in messages:
         lines.append(f"{m.role.upper()}: {m.content}")
@@ -52,8 +52,8 @@ class ContextCompressor:
     def __init__(
         self,
         provider: str = "anthropic",
-        model: Optional[str] = None,
-        api_key: Optional[str] = None,
+        model: str | None = None,
+        api_key: str | None = None,
     ):
         self.provider = provider
         self.model = model
@@ -109,7 +109,7 @@ class ContextCompressor:
 
         return ""
 
-    def summarize(self, messages: list["Message"]) -> str:
+    def summarize(self, messages: list[Message]) -> str:
         """
         Compress a list of messages into a concise summary.
         Returns the summary string.
@@ -118,7 +118,7 @@ class ContextCompressor:
         prompt = COMPRESSION_PROMPT.format(conversation=conversation_text)
         return self._call_llm(prompt)
 
-    def extract_facts(self, messages: list["Message"]) -> list[str]:
+    def extract_facts(self, messages: list[Message]) -> list[str]:
         """
         Extract discrete long-term facts from messages.
         Returns a list of fact strings.

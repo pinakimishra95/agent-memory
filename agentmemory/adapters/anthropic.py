@@ -17,7 +17,7 @@ Usage:
 from __future__ import annotations
 
 import os
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..store import MemoryStore
@@ -32,14 +32,14 @@ class MemoryAnthropic:
         self,
         agent_id: str,
         model: str = "claude-haiku-4-5",
-        api_key: Optional[str] = None,
-        memory_store: Optional["MemoryStore"] = None,
+        api_key: str | None = None,
+        memory_store: MemoryStore | None = None,
         system_prompt: str = "You are a helpful assistant.",
         max_tokens: int = 1024,
         **memory_kwargs,
     ):
         try:
-            import anthropic
+            import anthropic as _anthropic
         except ImportError:
             raise ImportError("anthropic package required: pip install anthropic")
 
@@ -53,7 +53,7 @@ class MemoryAnthropic:
             llm_provider="anthropic",
             **memory_kwargs,
         )
-        self._client = __import__("anthropic").Anthropic(
+        self._client = _anthropic.Anthropic(
             api_key=api_key or os.environ.get("ANTHROPIC_API_KEY")
         )
 

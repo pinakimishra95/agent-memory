@@ -3,11 +3,10 @@ Episodic memory tier — recent session history stored in SQLite.
 Searchable by recency and keyword. No external dependencies.
 """
 
-import sqlite3
 import json
+import sqlite3
 import time
 from pathlib import Path
-from typing import Optional
 
 
 class EpisodicMemory:
@@ -16,7 +15,7 @@ class EpisodicMemory:
     Automatically evicts oldest entries when a size cap is reached.
     """
 
-    def __init__(self, agent_id: str, db_path: Optional[str] = None, max_entries: int = 1000):
+    def __init__(self, agent_id: str, db_path: str | None = None, max_entries: int = 1000):
         self.agent_id = agent_id
         self.max_entries = max_entries
 
@@ -49,7 +48,7 @@ class EpisodicMemory:
                 "CREATE INDEX IF NOT EXISTS idx_agent_time ON memories (agent_id, created_at DESC)"
             )
 
-    def store(self, content: str, metadata: Optional[dict] = None, importance: int = 5):
+    def store(self, content: str, metadata: dict | None = None, importance: int = 5):
         """Store a memory. importance: 1 (low) to 10 (critical)."""
         with self._connect() as conn:
             conn.execute(

@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-from typing import Optional
 
 
 class SemanticMemory:
@@ -29,7 +28,7 @@ class SemanticMemory:
         agent_id: str,
         backend: str = "chromadb",
         embedding_provider: str = "sentence-transformers",
-        persist_dir: Optional[str] = None,
+        persist_dir: str | None = None,
         **backend_kwargs,
     ):
         self.agent_id = agent_id
@@ -127,7 +126,7 @@ class SemanticMemory:
 
         return self._collection
 
-    def store(self, content: str, metadata: Optional[dict] = None, doc_id: Optional[str] = None):
+    def store(self, content: str, metadata: dict | None = None, doc_id: str | None = None):
         """Store a piece of knowledge with its embedding."""
         if doc_id is None:
             doc_id = hashlib.sha256(content.encode()).hexdigest()[:16]

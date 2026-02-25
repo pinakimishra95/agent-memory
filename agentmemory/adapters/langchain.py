@@ -17,7 +17,8 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..store import MemoryStore
@@ -31,7 +32,7 @@ class MemoryHistory:
     with RunnableWithMessageHistory and other LangChain components.
     """
 
-    def __init__(self, memory_store: "MemoryStore"):
+    def __init__(self, memory_store: MemoryStore):
         self.memory_store = memory_store
 
     def add_user_message(self, message: str) -> None:
@@ -67,8 +68,8 @@ class MemoryHistory:
 
 def inject_memory_context(
     messages: list[dict],
-    memory_store: "MemoryStore",
-    query: Optional[str] = None,
+    memory_store: MemoryStore,
+    query: str | None = None,
     max_tokens: int = 500,
 ) -> list[dict]:
     """

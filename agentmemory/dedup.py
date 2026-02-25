@@ -5,8 +5,6 @@ that would waste vector DB space and pollute retrieval results.
 
 from __future__ import annotations
 
-from typing import Optional
-
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
     dot = sum(x * y for x, y in zip(a, b))
@@ -87,7 +85,7 @@ class MemoryDeduplicator:
 
         return False
 
-    def deduplicate(self, candidates: list[str], existing: Optional[list[str]] = None) -> list[str]:
+    def deduplicate(self, candidates: list[str], existing: list[str] | None = None) -> list[str]:
         """
         Filter a list of candidate memories, removing duplicates against each other
         and against the existing memories list.
