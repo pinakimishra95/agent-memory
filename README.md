@@ -2,7 +2,7 @@
 
 **Your AI agent forgets everything. AgentMemory fixes that in 3 lines.**
 
-[![PyPI version](https://badge.fury.io/py/agentmemory.svg)](https://badge.fury.io/py/agentmemory)
+[![PyPI version](https://badge.fury.io/py/agentcortex.svg)](https://badge.fury.io/py/agentcortex)
 [![Tests](https://github.com/pinakimishra95/agent-memory/actions/workflows/tests.yml/badge.svg)](https://github.com/pinakimishra95/agent-memory/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
