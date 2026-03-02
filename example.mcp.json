@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "agentmemory": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "agentmemory.mcp_server"],
+      "env": {
+        "AGENTMEMORY_AGENT_ID": "my-project-name"
+      }
+    }
+  }
+}

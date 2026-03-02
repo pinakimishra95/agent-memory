@@ -221,6 +221,79 @@ MemoryStore(
 
 ---
 
+## Claude Code Integration — Persistent Codebase Memory
+
+Give Claude Code a permanent brain for your project. Every session, it remembers
+architecture decisions, bug fixes, your coding preferences, and known gotchas — and
+recalls the relevant ones automatically before touching any file.
+
+```bash
+pip install "agentcortex[mcp]"
+```
+
+Copy `example.mcp.json` to your project root and rename it `.mcp.json`, then set your
+project name:
+
+```json
+{
+  "mcpServers": {
+    "agentmemory": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "agentmemory.mcp_server"],
+      "env": {
+        "AGENTMEMORY_AGENT_ID": "your-project-name"
+      }
+    }
+  }
+}
+```
+
+Open Claude Code and run `/mcp` — you'll see `agentmemory` connected with 5 tools.
+
+Claude will now automatically:
+- Call `get_context("current task")` at the start of each session
+- Call `remember(...)` after fixing bugs, making architectural decisions, or learning about the codebase
+- Call `recall("payment module")` before touching any file it's worked on before
+
+### What it looks like in practice
+
+```
+Session 1 — You:  "Fix the race condition in payment/process_transaction.py"
+Claude fixes it, then calls:
+  remember("payment/process_transaction.py had a race condition — fixed with
+   a DB-level lock in process_transaction(). Do NOT use in-memory locks here,
+   they don't work across workers.", importance=9)
+
+Session 2 (next week) — You: "Add retry logic to the payment module"
+Claude calls:  get_context("payment module retry logic")
+→ retrieves:   "process_transaction.py: use DB-level locks, not in-memory"
+Claude:        "I remember this module had a concurrency issue before.
+                I'll make sure the retry logic respects the DB-level lock..."
+```
+
+### Available MCP tools
+
+| Tool | Description |
+|---|---|
+| `get_context(query, max_tokens)` | Call at session start — returns relevant memories for current task |
+| `remember(content, importance)` | Store a fact, decision, or gotcha (importance 1-10) |
+| `recall(query, n)` | Semantic search over all stored memories |
+| `memory_stats()` | Show counts across working / episodic / semantic tiers |
+| `clear_memory(tiers)` | Reset memories (irreversible) |
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `AGENTMEMORY_AGENT_ID` | `"default"` | Memory namespace — use your project name |
+| `AGENTMEMORY_PERSIST_DIR` | `~/.agentmemory` | Where memories are stored on disk |
+| `AGENTMEMORY_LLM_PROVIDER` | `"anthropic"` | LLM for auto-compression: `"anthropic"` or `"openai"` |
+
+Works with Claude Code, Cursor, and any MCP-compatible AI coding assistant.
+
+---
+
 ## Comparison
 
 | | MemGPT | LangChain Memory | **AgentMemory** |
@@ -243,7 +316,7 @@ MemoryStore(
 - [ ] Memory export/import (JSON)
 - [ ] Memory visualization CLI (`agentmemory inspect`)
 - [ ] Async support (`AsyncMemoryStore`)
-- [ ] MCP server integration
+- [x] MCP server integration (`pip install "agentcortex[mcp]"`)
 
 ---
 

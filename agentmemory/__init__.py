@@ -19,7 +19,7 @@ from .tiers.episodic import EpisodicMemory
 from .tiers.semantic import SemanticMemory
 from .tiers.working import WorkingMemory
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [
     "MemoryStore",
     "EpisodicMemory",

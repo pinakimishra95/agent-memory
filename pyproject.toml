@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentcortex"
-version = "0.1.0"
+version = "0.1.1"
 description = "Production-ready persistent memory for AI agents. Works with LangChain, CrewAI, AutoGen, and raw Anthropic/OpenAI SDKs."
 readme = "README.md"
 license = { text = "MIT" }
@@ -45,11 +45,15 @@ openai = ["openai>=1.30.0"]
 langchain = ["langchain-core>=0.2.0"]
 crewai = ["crewai>=0.55.0"]
 
+# MCP server (for Claude Code / any MCP-compatible AI coding assistant)
+mcp = ["mcp>=1.2.0"]
+
 # Recommended "batteries included" install
 all = [
     "chromadb>=0.5.0",
     "sentence-transformers>=3.0.0",
     "anthropic>=0.30.0",
+    "mcp>=1.2.0",
 ]
 
 # Development
@@ -59,6 +63,9 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
+
+[project.scripts]
+agentmemory-mcp = "agentmemory.mcp_server:main"
 
 [project.urls]
 Homepage = "https://github.com/pinakimishra95/agent-memory"
