@@ -41,3 +41,15 @@ jobs:
         run: pip install -e ".[chromadb,local,dev]"
       - name: Run full test suite
         run: pytest tests/ -v --tb=short -k "not compression"  # Skip compression (needs API key)
+
+  test-with-mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install with mcp extras
+        run: pip install -e ".[mcp,dev]"
+      - name: Run MCP server tests
+        run: pytest tests/test_mcp_server.py -v --tb=short

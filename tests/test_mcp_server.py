@@ -7,6 +7,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+pytest.importorskip("mcp", reason="mcp package not installed — install with: pip install agentcortex[mcp]")
+
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 

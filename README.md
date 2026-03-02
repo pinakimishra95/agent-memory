@@ -7,6 +7,9 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> **Claude Code / Cursor users** — give your AI coding assistant a permanent memory for your codebase in 2 minutes.
+> [Jump to MCP setup →](#claude-code-integration--persistent-codebase-memory)
+
 ---
 
 ## The Problem
@@ -223,17 +226,20 @@ MemoryStore(
 
 ## Claude Code Integration — Persistent Codebase Memory
 
-Give Claude Code a permanent brain for your project. Every session, it remembers
-architecture decisions, bug fixes, your coding preferences, and known gotchas — and
-recalls the relevant ones automatically before touching any file.
+> Stop re-explaining your codebase every session. Claude will remember architecture decisions, bug fixes, and your preferences — automatically.
 
+**The problem:** Every time you open Claude Code, it starts from zero. You repeat the same context, re-explain the same constraints, watch it make the same mistakes.
+
+**The fix:** 2-minute setup. Claude permanently remembers everything it learns about your project.
+
+### Setup (2 minutes)
+
+**Step 1 — Install:**
 ```bash
 pip install "agentcortex[mcp]"
 ```
 
-Copy `example.mcp.json` to your project root and rename it `.mcp.json`, then set your
-project name:
-
+**Step 2 — Create `.mcp.json` in your project root:**
 ```json
 {
   "mcpServers": {
@@ -249,48 +255,47 @@ project name:
 }
 ```
 
-Open Claude Code and run `/mcp` — you'll see `agentmemory` connected with 5 tools.
+**Step 3 — Open Claude Code and run `/mcp`** — you'll see `agentmemory` connected with 5 tools. Done.
 
-Claude will now automatically:
-- Call `get_context("current task")` at the start of each session
-- Call `remember(...)` after fixing bugs, making architectural decisions, or learning about the codebase
-- Call `recall("payment module")` before touching any file it's worked on before
-
-### What it looks like in practice
+### What changes immediately
 
 ```
-Session 1 — You:  "Fix the race condition in payment/process_transaction.py"
-Claude fixes it, then calls:
-  remember("payment/process_transaction.py had a race condition — fixed with
-   a DB-level lock in process_transaction(). Do NOT use in-memory locks here,
-   they don't work across workers.", importance=9)
+Session 1 — You: "Fix the race condition in payment/process_transaction.py"
+Claude fixes it, then stores:
+  remember("payment/process_transaction.py: race condition fixed with DB-level
+   lock. NEVER use in-memory locks — they don't survive multiple workers.",
+   importance=9)
 
-Session 2 (next week) — You: "Add retry logic to the payment module"
-Claude calls:  get_context("payment module retry logic")
-→ retrieves:   "process_transaction.py: use DB-level locks, not in-memory"
-Claude:        "I remember this module had a concurrency issue before.
-                I'll make sure the retry logic respects the DB-level lock..."
+── one week later ──────────────────────────────────────────────────────────────
+
+Session 2 — You: "Add retry logic to the payment module"
+Claude automatically calls: get_context("payment module retry logic")
+Retrieves: "process_transaction.py: use DB-level locks, not in-memory"
+Claude: "I remember this module had a concurrency issue. I'll make sure
+         the retry logic respects the DB-level lock..."
 ```
+
+No re-explaining. No repeated mistakes. Claude gets smarter about your codebase over time.
 
 ### Available MCP tools
 
-| Tool | Description |
+| Tool | What it does |
 |---|---|
-| `get_context(query, max_tokens)` | Call at session start — returns relevant memories for current task |
-| `remember(content, importance)` | Store a fact, decision, or gotcha (importance 1-10) |
+| `get_context(query, max_tokens)` | Returns relevant memories for the current task — call at session start |
+| `remember(content, importance)` | Store a fact, decision, or gotcha (importance 1–10) |
 | `recall(query, n)` | Semantic search over all stored memories |
-| `memory_stats()` | Show counts across working / episodic / semantic tiers |
-| `clear_memory(tiers)` | Reset memories (irreversible) |
+| `memory_stats()` | Show memory counts across working / episodic / semantic tiers |
+| `clear_memory(tiers)` | Reset memories |
 
 ### Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `AGENTMEMORY_AGENT_ID` | `"default"` | Memory namespace — use your project name |
+| `AGENTMEMORY_AGENT_ID` | `"default"` | Memory namespace — one per project |
 | `AGENTMEMORY_PERSIST_DIR` | `~/.agentmemory` | Where memories are stored on disk |
 | `AGENTMEMORY_LLM_PROVIDER` | `"anthropic"` | LLM for auto-compression: `"anthropic"` or `"openai"` |
 
-Works with Claude Code, Cursor, and any MCP-compatible AI coding assistant.
+Works with **Claude Code**, **Cursor**, and any MCP-compatible AI coding assistant.
 
 ---
 

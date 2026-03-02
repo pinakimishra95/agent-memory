@@ -23,7 +23,10 @@ def memory(tmp_path):
         auto_extract_facts=False,
     )
     yield store
-    run(store.clear())
+    try:
+        run(store.clear())
+    except Exception:
+        pass  # collection may already be gone (e.g. test cleared it)
     store.close()
 
 
