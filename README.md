@@ -49,13 +49,13 @@ context = memory.get_context("What do we know about the user?")
 
 ```bash
 # Minimal install (SQLite episodic memory only, no external dependencies)
-pip install agentmemory
+pip install agentcortex
 
 # With semantic search + local embeddings (recommended)
-pip install "agentmemory[chromadb,local]"
+pip install "agentcortex[chromadb,local]"
 
 # Batteries included
-pip install "agentmemory[all]"
+pip install "agentcortex[all]"
 ```
 
 ---
