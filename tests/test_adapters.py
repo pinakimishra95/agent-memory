@@ -3,14 +3,12 @@ Tests for framework adapters.
 Mock external SDKs so no API keys or frameworks are needed.
 """
 
-import pytest
 import tempfile
 from unittest.mock import MagicMock
 
 
 class TestLangChainAdapter:
     def test_memory_history_add_and_retrieve(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.langchain import MemoryHistory
 
@@ -27,7 +25,6 @@ class TestLangChainAdapter:
         assert messages[1]["role"] == "assistant"
 
     def test_inject_memory_context_prepends_to_system(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.langchain import inject_memory_context
 
@@ -46,7 +43,6 @@ class TestLangChainAdapter:
         assert "You are helpful." in system_content
 
     def test_inject_memory_context_inserts_system_if_missing(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.langchain import inject_memory_context
 
@@ -62,7 +58,6 @@ class TestLangChainAdapter:
         assert "developer" in result[0]["content"]
 
     def test_memory_history_clear_resets_working(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.langchain import MemoryHistory
 
@@ -82,7 +77,6 @@ class TestOpenAIAdapter:
     """
 
     def test_chat_injects_memory_context(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.openai import MemoryOpenAI
 
@@ -100,7 +94,7 @@ class TestOpenAIAdapter:
         client = MemoryOpenAI(agent_id="oai-test", memory_store=store)
         client._client = mock_client
 
-        response = client.chat("What's my name?")
+        client.chat("What's my name?")
 
         call_args = mock_client.chat.completions.create.call_args
         messages_sent = call_args.kwargs.get("messages", [])
@@ -109,7 +103,6 @@ class TestOpenAIAdapter:
         assert "Bob" in system_msg["content"]
 
     def test_chat_tracks_history(self):
-        import tempfile
         from agentmemory import MemoryStore
         from agentmemory.adapters.openai import MemoryOpenAI
 

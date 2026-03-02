@@ -294,6 +294,155 @@ Works with Claude Code, Cursor, and any MCP-compatible AI coding assistant.
 
 ---
 
+## AutoGen Integration
+
+Give AutoGen agents persistent memory that survives across sessions.
+
+```python
+from agentmemory import MemoryStore
+from agentmemory.adapters.autogen import AutoGenMemoryHook, get_autogen_memory_context
+import autogen
+
+memory = MemoryStore(agent_id="my-autogen-agent")
+
+# Inject past context into the agent's system_message
+context = get_autogen_memory_context(memory, role="Research Assistant",
+                                     goal="literature review on LLMs")
+
+assistant = autogen.AssistantAgent(
+    name="researcher",
+    system_message=context + "\nYou are a helpful research assistant.",
+    llm_config={"model": "gpt-4o-mini"},
+)
+
+# Hook captures every reply and stores it in memory
+hook = AutoGenMemoryHook(memory, importance=6)
+assistant.register_reply(
+    trigger=autogen.ConversableAgent,
+    reply_func=hook.on_agent_reply,
+    position=0,
+)
+```
+
+Install: `pip install "agentcortex[autogen]"`
+
+---
+
+## Qdrant Production Backend
+
+Scale to millions of vectors with a dedicated vector database.
+
+```python
+from agentmemory import MemoryStore
+
+# docker run -p 6333:6333 qdrant/qdrant
+memory = MemoryStore(
+    agent_id="my-agent",
+    semantic_backend="qdrant",
+    qdrant_url="http://localhost:6333",      # or Qdrant Cloud URL
+    embedding_provider="sentence-transformers",
+)
+
+memory.remember("Production architecture uses microservices", importance=8)
+results = memory.recall("architecture")
+```
+
+Install: `pip install "agentcortex[qdrant]"`
+
+---
+
+## Memory Export / Import (JSON)
+
+Back up and restore episodic memories across machines or agent instances.
+
+```python
+from agentmemory import MemoryStore
+
+memory = MemoryStore(agent_id="my-agent")
+memory.remember("PostgreSQL is our main database", importance=8)
+
+# Export to JSON file
+memory.export_json("backup.json")
+
+# Restore on another machine / new agent
+new_memory = MemoryStore(agent_id="new-agent")
+count = new_memory.import_json("backup.json")
+print(f"Imported {count} memories")
+
+# Merge instead of replacing
+new_memory.import_json("backup.json", merge=True)
+
+# Or work with the dict directly
+data = memory.export_json()   # no path → returns dict only
+new_memory.import_json(data)
+```
+
+---
+
+## Memory CLI
+
+Inspect and manage memories from the command line.
+
+```bash
+# Inspect stored memories
+agentmemory inspect --agent-id my-project
+
+# agentmemory — agent: my-project
+# ════════════════════════════════════════
+# EPISODIC MEMORY  (3 entries)
+# ────────────────────────────────────────
+#   #   IMP   Created              Content
+#   1    9    2026-02-28 14:23:01  We use PostgreSQL for relational...
+#   2    7    2026-02-27 09:14:55  payment/process_transaction.py h...
+#   3    5    2026-02-26 18:30:12  User prefers functional style ove...
+
+# Export memories to JSON
+agentmemory export --agent-id my-project --output memories.json
+
+# Import memories (restores; use --merge to add alongside existing)
+agentmemory import memories.json --agent-id new-project --merge
+```
+
+Install: `pip install agentcortex`  (the CLI is always included)
+
+---
+
+## Async Support
+
+Use agentmemory in FastAPI, aiohttp, or any async Python application.
+
+```python
+import asyncio
+from agentmemory import AsyncMemoryStore
+
+async def main():
+    # Identical API to MemoryStore — just add await
+    memory = AsyncMemoryStore(agent_id="my-async-agent")
+
+    await memory.remember("User prefers Python over JavaScript", importance=7)
+    results = await memory.recall("tech stack")
+    context = await memory.get_context("What do we know?")
+
+    # Export / import work the same way
+    data = await memory.export_json()
+    await memory.import_json(data)
+
+    memory.close()
+
+# Or use as an async context manager
+async def with_context_manager():
+    async with AsyncMemoryStore(agent_id="my-agent") as memory:
+        await memory.remember("Context manager closes executor automatically")
+        ctx = await memory.get_context()
+        print(ctx)
+
+asyncio.run(main())
+```
+
+Install: `pip install agentcortex`  (`AsyncMemoryStore` is always included)
+
+---
+
 ## Comparison
 
 | | MemGPT | LangChain Memory | **AgentMemory** |
@@ -311,11 +460,11 @@ Works with Claude Code, Cursor, and any MCP-compatible AI coding assistant.
 
 ## Roadmap
 
-- [ ] AutoGen adapter
-- [ ] Qdrant production backend examples
-- [ ] Memory export/import (JSON)
-- [ ] Memory visualization CLI (`agentmemory inspect`)
-- [ ] Async support (`AsyncMemoryStore`)
+- [x] AutoGen adapter (`pip install "agentcortex[autogen]"`)
+- [x] Qdrant production backend (`pip install "agentcortex[qdrant]"`)
+- [x] Memory export/import (JSON) — `memory.export_json()` / `memory.import_json()`
+- [x] Memory visualization CLI — `agentmemory inspect / export / import`
+- [x] Async support — `AsyncMemoryStore` with full `await` API
 - [x] MCP server integration (`pip install "agentcortex[mcp]"`)
 
 ---

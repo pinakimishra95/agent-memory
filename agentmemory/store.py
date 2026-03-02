@@ -45,6 +45,7 @@ class MemoryStore:
         # Semantic memory config
         semantic_backend: str = "chromadb",
         embedding_provider: str = "sentence-transformers",
+        qdrant_url: str | None = None,
         # Compression config
         llm_provider: str = "anthropic",
         llm_model: str | None = None,
@@ -64,6 +65,8 @@ class MemoryStore:
             compression_threshold: Fraction of max_working_tokens that triggers compression.
             semantic_backend: Vector DB backend ("chromadb" or "qdrant").
             embedding_provider: Embeddings for semantic search ("sentence-transformers" or "openai").
+            qdrant_url: Qdrant server URL when semantic_backend="qdrant"
+                        (e.g. "http://localhost:6333"). Ignored for chromadb.
             llm_provider: LLM used for compression ("anthropic" or "openai").
             llm_model: Specific model for compression. Defaults to fast/cheap models.
             api_key: API key (falls back to env vars ANTHROPIC_API_KEY / OPENAI_API_KEY).
@@ -72,6 +75,7 @@ class MemoryStore:
             auto_compress: Automatically compress working memory when token limit is near.
             auto_extract_facts: Extract and store long-term facts during compression.
         """
+        self._agent_id = agent_id
         self.agent_id = agent_id
         self.auto_compress = auto_compress
         self.auto_extract_facts = auto_extract_facts
@@ -81,6 +85,11 @@ class MemoryStore:
 
         # Ensure persist directory exists
         Path(persist_dir).mkdir(parents=True, exist_ok=True)
+
+        # Build backend-specific kwargs (e.g. Qdrant URL)
+        backend_kwargs: dict = {}
+        if qdrant_url:
+            backend_kwargs["url"] = qdrant_url
 
         # Initialize tiers
         self.working = WorkingMemory(
@@ -96,6 +105,7 @@ class MemoryStore:
             backend=semantic_backend,
             embedding_provider=embedding_provider,
             persist_dir=str(Path(persist_dir) / "semantic"),
+            **backend_kwargs,
         )
 
         self._compressor = ContextCompressor(
@@ -299,3 +309,105 @@ class MemoryStore:
             "episodic": {"count": self.episodic.count()},
             "semantic": {"count": self.semantic.count()},
         }
+
+    # -------------------------------------------------------------------------
+    # Export / Import
+    # -------------------------------------------------------------------------
+
+    def export_json(
+        self,
+        path: str | None = None,
+        tiers: list[str] | None = None,
+    ) -> dict:
+        """
+        Export memories to a dict and optionally write to a JSON file.
+
+        Working memory is session-scoped and is not exported. Semantic memory
+        is re-derived from episodic content on import, so only episodic is
+        serialised.
+
+        Args:
+            path: Optional file path to write the JSON export to. If omitted,
+                  the export dict is returned but not written to disk.
+            tiers: Which tiers to export. Currently supports ["episodic"].
+                   Defaults to ["episodic"].
+
+        Returns:
+            dict with keys: version, agent_id, exported_at, episodic.
+
+        Example:
+            data = memory.export_json("backup.json")
+            # → writes backup.json, returns the dict
+        """
+        import json  # noqa: PLC0415
+        import time  # noqa: PLC0415
+
+        tiers = tiers or ["episodic"]
+        data: dict = {
+            "version": "1.0",
+            "agent_id": self._agent_id,
+            "exported_at": time.time(),
+        }
+
+        if "episodic" in tiers:
+            rows = self.episodic.recall_recent(n=10_000)
+            data["episodic"] = [
+                {
+                    "content": r["content"],
+                    "metadata": r.get("metadata", {}),
+                    "created_at": r["created_at"],
+                    "importance": r.get("importance", 5),
+                }
+                for r in rows
+            ]
+
+        if path:
+            with open(path, "w") as f:
+                json.dump(data, f, indent=2)
+
+        return data
+
+    def import_json(
+        self,
+        source: str | dict,
+        merge: bool = False,
+    ) -> int:
+        """
+        Import episodic memories from a JSON file path or previously exported dict.
+
+        Args:
+            source: File path string or dict produced by export_json().
+            merge:  If False (default), clears episodic memory before importing
+                    so the result is an exact restoration of the export.
+                    If True, new records are merged alongside existing ones.
+
+        Returns:
+            Number of records imported.
+
+        Example:
+            # Backup
+            memory.export_json("backup.json")
+
+            # Restore on another machine / agent
+            new_memory = MemoryStore(agent_id="new-agent")
+            new_memory.import_json("backup.json")
+        """
+        import json  # noqa: PLC0415
+
+        if isinstance(source, str):
+            with open(source) as f:
+                data = json.load(f)
+        else:
+            data = dict(source)
+
+        if not merge:
+            self.episodic.clear()
+
+        records = data.get("episodic", [])
+        for r in records:
+            self.episodic.store(
+                content=r["content"],
+                metadata=r.get("metadata", {}),
+                importance=r.get("importance", 5),
+            )
+        return len(records)

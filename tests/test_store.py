@@ -3,15 +3,12 @@ Tests for the MemoryStore class and memory tiers.
 These tests run without any external API keys or vector DB dependencies.
 """
 
-import pytest
-import tempfile
 import os
-from pathlib import Path
+import tempfile
 
-from agentmemory.tiers.episodic import EpisodicMemory
-from agentmemory.tiers.working import WorkingMemory, Message
 from agentmemory.dedup import MemoryDeduplicator
-
+from agentmemory.tiers.episodic import EpisodicMemory
+from agentmemory.tiers.working import WorkingMemory
 
 # ---------------------------------------------------------------------------
 # EpisodicMemory tests (no external dependencies)

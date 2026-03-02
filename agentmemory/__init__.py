@@ -12,6 +12,7 @@ Add persistent memory to any AI agent in 3 lines:
 Works with LangChain, CrewAI, AutoGen, and raw Anthropic/OpenAI SDKs.
 """
 
+from .async_store import AsyncMemoryStore
 from .compression import ContextCompressor
 from .dedup import MemoryDeduplicator
 from .store import MemoryStore
@@ -19,9 +20,10 @@ from .tiers.episodic import EpisodicMemory
 from .tiers.semantic import SemanticMemory
 from .tiers.working import WorkingMemory
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __all__ = [
     "MemoryStore",
+    "AsyncMemoryStore",
     "EpisodicMemory",
     "SemanticMemory",
     "WorkingMemory",

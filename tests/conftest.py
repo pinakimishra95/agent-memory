@@ -7,7 +7,6 @@ an adapter. This lets adapter tests run without the actual packages installed.
 
 import sys
 from unittest.mock import MagicMock
-import pytest
 
 
 def _stub_openai():

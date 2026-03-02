@@ -3,11 +3,10 @@ Tests for the ContextCompressor and compression pipeline.
 These tests mock the LLM calls so no API key is needed.
 """
 
-import pytest
 from unittest.mock import MagicMock
 
-from agentmemory.tiers.working import Message
 from agentmemory.compression import ContextCompressor
+from agentmemory.tiers.working import Message
 
 
 class TestContextCompressor:
